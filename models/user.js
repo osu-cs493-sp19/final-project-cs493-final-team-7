@@ -38,8 +38,9 @@ exports.insertNewUser = insertNewUser;
 async function getUserById(id, includePassword) {
   const db = getDBReference();
   const collection = db.collection('users');
-  if(id == "0" || id == "1" || id == "2") {
-    console.log("==defqult users");
+  console.log("id length: ", id.length);
+  if(id.length < 3 ) {
+    console.log("==default users");
     const projection = includePassword ? {} : { password: 0 };
     const results = await collection
       .find({ _id: id })
@@ -73,3 +74,23 @@ exports.validateUser = async function (id, password) {
   }
   return authenticated;
 };
+
+async function getStudentsByCourseId(id) {
+  console.log("==IN getStudentsByCourseId ID: ", id);
+  const db = getDBReference();
+  const collection = db.collection('users');
+  if(id.length < 3 ) {
+    const results = await collection
+      .find({ courseid: id })
+      .toArray();
+    return results;
+  } else if (!ObjectId.isValid(id)) {
+    return [];
+  } else {
+    const results = await collection
+      .find({ courseid: new ObjectId(id) })
+      .toArray();
+    return results;
+  }
+}
+exports.getStudentsByCourseId = getStudentsByCourseId;
