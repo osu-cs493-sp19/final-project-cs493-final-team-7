@@ -13,8 +13,17 @@ router.post('/', requireAuthentication, async (req, res) => {
     if (currentUser.role == "0" || req.body.role ==  "2" ) {
       try {
         const id = await insertNewUser(req.body);
+        var role;
+        if(req.body.role == "0") {
+          role = "Admin";
+        } else if (req.body.role == "1") {
+          role = "Instructor";
+        } else {
+          role = "Student";
+        }
         res.status(201).send({
-          id: id
+          id: id,
+          role: role
         });
       } catch (err) {
         console.error(err);
