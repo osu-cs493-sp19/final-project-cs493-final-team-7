@@ -38,7 +38,7 @@ exports.insertNewUser = insertNewUser;
 async function getUserById(id, includePassword) {
   const db = getDBReference();
   const collection = db.collection('users');
-  if(id == 0 || id == 1 || id == 2) {
+  if(id == "0" || id == "1" || id == "2") {
     console.log("==defqult users");
     const projection = includePassword ? {} : { password: 0 };
     const results = await collection
