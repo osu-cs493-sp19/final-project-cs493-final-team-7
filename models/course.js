@@ -101,10 +101,28 @@ async function updateCourse(id, course) {
 exports.updateCourse = updateCourse;
 
 
-async function courseEnrollment(addIds, removeIds) {
-  const db = getDBReference();
-  const collection = db.collection('courses');
+async function courseEnrollment(courseId, addIds, removeIds) {
+  console.log("==courseEnrollment:");
+  console.log("add: ", addIds);
+  console.log("remove: ", removeIds);
 
+  if (!ObjectId.isValid(courseId)) {
+    return null;
+  } else {
+    const db = getDBReference();
+    const collection = db.collection('courses');
+    var result = await collection.updateOne(
+      { _id: new ObjectId(courseId)},
+      { $pull: { studentsId: { $in: removeIds } }},
+    );
+
+    result = await collection.updateOne(
+      { _id: new ObjectId(courseId)},
+      { $push: { studentsId: { $each: addIds } }}
+    );
+
+    return courseId;
+  }
 }
 exports.courseEnrollment = courseEnrollment;
 

@@ -179,11 +179,14 @@ router.delete('/:id', requireAuthentication, async (req, res, next) => {
   can fetch the list of enrolled students.
  */
  router.get('/:id/students', requireAuthentication, async (req, res, next) => {
+   const id = req.params.id;
    const currentUser = await getUserById(req.user);
    const course = await getCourseById(id);
    if(course) {
      if(currentUser.role == "0" || currentUser._id == course.instructorId){
-        res.status(200).send(course.studentsId);
+        res.status(200).send(
+          {"enrolled students ID": course.studentsId}
+        );
      } else {
        res.status(403).send({
          error: "Unauthorized to access the specified resource"
@@ -203,6 +206,7 @@ router.delete('/:id', requireAuthentication, async (req, res, next) => {
  each will likely be either an integer or a string.
  */
  router.post('/:id/students', requireAuthentication, async (req, res, next) => {
+   const id = req.params.id;
    const currentUser = await getUserById(req.user);
    const course = await getCourseById(id);
    if(course) {
@@ -210,7 +214,8 @@ router.delete('/:id', requireAuthentication, async (req, res, next) => {
        if(req.body.add || req.body.remove){
          const enrollIds = req.body.add;
          const unenrollIds = req.body.remove;
-         //res.status(200).send(course.studentsId);
+         const results = await courseEnrollment(id, enrollIds, unenrollIds);
+         res.status(200).send(results);
        } else {
          res.status(400).send({
            error: "Request body is not a valid course object."
