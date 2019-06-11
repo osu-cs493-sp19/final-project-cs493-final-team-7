@@ -5,11 +5,17 @@
 const router = require('express').Router();
 
 const { validateAgainstSchema } = require('../lib/validation');
+const { generateAuthToken, requireAuthentication } = require('../lib/auth');
+const { UserSchema, insertNewUser, getUserById, validateUser } = require('../models/user');
+
 const {
   CourseSchema,
   getCoursesPage,
   insertNewCourse,
-  getCourseDetailsById
+  getCourseById,
+  updateCourse,
+  courseEnrollment,
+  deleteCourseById
 } = require('../models/course');
 
 /*
@@ -39,37 +45,46 @@ router.get('/', async (req, res) => {
 /*
  * Route to create a new course.
  */
-router.post('/', async (req, res) => {
-  if (validateAgainstSchema(req.body, CourseSchema)) {
-    try {
-      const id = await insertNewCourse(req.body);
-      res.status(201).send({
-        id: id,
-        links: {
-          course: `/courses/${id}`
-        }
-      });
-    } catch (err) {
-      console.error(err);
-      res.status(500).send({
-        error: "Error inserting course into DB.  Please try again later."
+router.post('/', requireAuthentication, async (req, res) => {
+  const currentUser = await getUserById(req.user);
+  if(currentUser.role == "0"){
+    if (validateAgainstSchema(req.body, CourseSchema)) {
+      try {
+        const id = await insertNewCourse(req.body);
+        res.status(201).send({
+          id: id,
+          links: {
+            course: `/courses/${id}`
+          }
+        });
+      } catch (err) {
+        console.error(err);
+        res.status(500).send({
+          error: "Error inserting course into DB.  Please try again later."
+        });
+      }
+    } else {
+      res.status(400).send({
+        error: "Request body is not a valid course object."
       });
     }
   } else {
-    res.status(400).send({
-      error: "Request body is not a valid course object."
+    res.status(403).send({
+      error: "Unauthorized to access the specified resource"
     });
   }
 });
 
 /*
  * Route to fetch info about a specific courses.
+ Returns summary data about the Course, excluding the list of students enrolled in the course
+ and the list of Assignments for the course.
+
  */
 router.get('/:id', async (req, res, next) => {
   try {
-    const course = await getCourseDetailsById(req.params.id);
+    const course = await getCourseById(req.params.id);
     if (course) {
-      console.log("Results: ", course.students);
       res.status(200).send(course);
     } else {
       next();
@@ -86,35 +101,129 @@ router.get('/:id', async (req, res, next) => {
 /*
  * Route to modify info about a specific courses.
  */
-router.put('/:id', async (req, res, next) => {
-
-
+router.put('/:id', requireAuthentication, async (req, res, next) => {
+  const currentUser = await getUserById(req.user);
+  const id = req.params.id;
+  const existingCourse = await getCourseById(id);
+  if(existingCourse) {
+    if(currentUser.role == "0" || currentUser._id == existingCourse.instructorId){
+      if (validateAgainstSchema(req.body, CourseSchema)) {
+        try {
+          const updatedId = await updateCourse(id, req.body);
+          res.status(201).send({
+            id: updatedId,
+            links: {
+              course: `/courses/${updatedId}`
+            }
+          });
+        } catch (err) {
+          console.error(err);
+          res.status(500).send({
+            error: "Error updating course into DB.  Please try again later."
+          });
+        }
+      } else {
+        res.status(400).send({
+          error: "Request body is not a valid course object."
+        });
+      }
+    } else {
+      res.status(403).send({
+        error: "Unauthorized to access the specified resource"
+      });
+    }
+  } else {
+    next();
+  }
 });
 
 /*
  * Route to delete info about a specific courses.
  */
-router.delete('/:id', async (req, res, next) => {
-
-
+router.delete('/:id', requireAuthentication, async (req, res, next) => {
+  const id = req.params.id;
+  const existingCourse = await getCourseById(id);
+  const currentUser = await getUserById(req.user);
+  if(existingCourse) {
+    if(currentUser.role == "0") {
+      try {
+        const deleteSuccessful = await deleteCourseById(req.params.id);
+        if (deleteSuccessful) {
+          res.status(204).end();
+        } else {
+          next();
+        }
+      } catch (err) {
+        console.error(err);
+        res.status(500).send({
+          error: "Unable to delete course.  Please try again later."
+        });
+      }
+    } else {
+      res.status(403).send({
+        error: "Unauthorized to access the specified resource"
+      });
+    }
+  } else {
+    next();
+  }
 });
 
 
 /*
  * Route to get students list of a specific courses.
+
+  Returns a list containing the User IDs of all students currently enrolled in the Course.
+  Only an authenticated User with 'admin' role or
+  an authenticated 'instructor' User whose ID matches the `instructorId` of the Course
+  can fetch the list of enrolled students.
  */
- router.get('/:id/students', async (req, res, next) => {
-
-
+ router.get('/:id/students', requireAuthentication, async (req, res, next) => {
+   const currentUser = await getUserById(req.user);
+   const course = await getCourseById(id);
+   if(course) {
+     if(currentUser.role == "0" || currentUser._id == course.instructorId){
+        res.status(200).send(course.studentsId);
+     } else {
+       res.status(403).send({
+         error: "Unauthorized to access the specified resource"
+       });
+     }
+   } else {
+     next();
+   }
  });
 
 
 /*
  * Route to enroll a course for students.
+ Body:
+ Arrays of User IDs for students to be enrolled/unenrolled in the Course.
+ Exact type/format of IDs will depend on your implementation but
+ each will likely be either an integer or a string.
  */
- router.post('/:id/students', async (req, res, next) => {
-
-
+ router.post('/:id/students', requireAuthentication, async (req, res, next) => {
+   const currentUser = await getUserById(req.user);
+   const course = await getCourseById(id);
+   if(course) {
+     if(currentUser.role == "0" || currentUser._id == course.instructorId){
+       if(req.body.add || req.body.remove){
+         const enrollIds = req.body.add;
+         const unenrollIds = req.body.remove;
+         //res.status(200).send(course.studentsId);
+       } else {
+         res.status(400).send({
+           error: "Request body is not a valid course object."
+         });
+       }
+     } else {
+       res.status(403).send({
+         error: "Unauthorized to access the specified resource"
+       });
+     }
+   } else {
+     next();
+   }
  });
 
 

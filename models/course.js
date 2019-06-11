@@ -6,7 +6,6 @@ const { ObjectId } = require('mongodb');
 
 const { getDBReference } = require('../lib/mongo');
 const { extractValidFields } = require('../lib/validation');
-const { getStudentsByCourseId } = require('./user');
 
 /*
  * Schema describing required/optional fields of a course object.
@@ -16,7 +15,7 @@ const CourseSchema = {
   number: { required: true },
   title: { required: true },
   term: { required: true },
-  instructorId: { required: false }
+  instructorId: { required: true }
 };
 exports.CourseSchema = CourseSchema;
 
@@ -63,32 +62,105 @@ exports.insertNewCourse = insertNewCourse;
 
 
 async function getCourseById(id) {
-  const db = getDBReference();
-  const collection = db.collection('courses');
 
-  if(id.length < 3 ) {
-    const results = await collection
-      .find({ _id: id })
-      .toArray();
-    return results;
-  } else if (!ObjectId.isValid(id)) {
+  if (!ObjectId.isValid(id)) {
     return null;
   } else {
+    const db = getDBReference();
+    const collection = db.collection('courses');
     const results = await collection
       .find({ _id: new ObjectId(id) })
       .toArray();
-    return results[0];
+      return results[0];
   }
+}
+exports.getCourseById = getCourseById;
+
+
+async function updateCourse(id, course) {
+
+  if (!ObjectId.isValid(id)) {
+    return null;
+  } else {
+    const db = getDBReference();
+    const collection = db.collection('courses');
+    const result = await collection.updateOne(
+      { _id: new ObjectId(id)},
+      { $set: {
+        "subject": course.subject,
+        "number": course.number,
+        "title": course.title,
+        "term": course.term,
+        "instructorId": course.instructorId
+        }
+      }
+    );
+    return id;
+  }
+}
+exports.updateCourse = updateCourse;
+
+
+async function courseEnrollment(addIds, removeIds) {
+  const db = getDBReference();
+  const collection = db.collection('courses');
+
+}
+exports.courseEnrollment = courseEnrollment;
+
+
+async function deleteCourseById(id) {
+  if (!ObjectId.isValid(id)) {
+    return null;
+  } else {
+    const db = getDBReference();
+    const collection = db.collection('courses');
+    const result = await collection.deleteOne(
+      { _id: new ObjectId(id)},
+    );
+    return id;
+  }
+}
+exports.deleteCourseById = deleteCourseById;
+
+
+
+function getCourseIdByResults(results) {
+  var ids = [];
+  for(var i = 0; i < results.length; i++) {
+      ids.push(results[i]._id);
+  }
+  return ids;
 }
 
 
-async function getCourseDetailsById(id) {
 
-  const course = await getCourseById(id);
-  if(course) {
-    course.students = await getStudentsByCourseId(id);
+async function getCourseIdByUserId(role, userid) {
+  if (!ObjectId.isValid(userid) && userid.length != 1) {
+    return null;
+  } else {
+    const db = getDBReference();
+    const collection = db.collection('courses');
+
+    if(role == 1) {
+      const results = await collection
+        .find(
+          { "instructorId": userid },
+          { _id: 1}
+        )
+        .toArray();
+        const courseIds = getCourseIdByResults(results);
+        return courseIds;
+    } else {
+      const results = await collection
+        .find(
+          { "studentsId": userid },
+          { _id: 1}
+        )
+        .toArray();
+        const courseIds = getCourseIdByResults(results);
+        return courseIds;
+    }
   }
-
-  return course;
 }
-exports.getCourseDetailsById = getCourseDetailsById;
+exports.getCourseIdByUserId = getCourseIdByUserId;

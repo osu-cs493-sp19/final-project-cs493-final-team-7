@@ -3,7 +3,7 @@ const router = require('express').Router();
 const { validateAgainstSchema } = require('../lib/validation');
 const { generateAuthToken, requireAuthentication } = require('../lib/auth');
 const { UserSchema, insertNewUser, getUserById, validateUser } = require('../models/user');
-
+const { getCourseIdByUserId } = require('../models/course');
 
 
 
@@ -74,24 +74,27 @@ router.post('/login', async (req, res) => {
 
 
 /*
- * Route to list all of a user's user data.
+ * Route to list all of a user's user data and the matched courses information.
  */
 router.get('/:id/', requireAuthentication, async (req, res, next) => {
   const currentUser = await getUserById(req.user);
-  if (req.params.id == req.user || currentUser.role == 0) {
-    try {
-      console.log("==GET users/", req.params.id);
-      const user = await getUserById(req.params.id);
-      if (user) {
-        res.status(200).send({ user: user });
-      } else {
-        next();
+  if (req.params.id == req.user) {
+    if(currentUser) {
+      try {
+        const courses = await getCourseIdByUserId(currentUser.role, req.params.id);
+        console.log("==GET users/", req.params.id, " Courses: ", courses);
+        res.status(200).send({
+          user: currentUser,
+          courses: courses
+        });
+      } catch (err) {
+        console.error(err);
+        res.status(500).send({
+          error: "Unable to fetch users.  Please try again later."
+        });
       }
-    } catch (err) {
-      console.error(err);
-      res.status(500).send({
-        error: "Unable to fetch users.  Please try again later."
-      });
+    } else {
+      next();
     }
   } else {
     res.status(403).send({

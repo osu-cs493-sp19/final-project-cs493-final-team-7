@@ -38,9 +38,7 @@ exports.insertNewUser = insertNewUser;
 async function getUserById(id, includePassword) {
   const db = getDBReference();
   const collection = db.collection('users');
-  console.log("id length: ", id.length);
   if(id.length < 3 ) {
-    console.log("==default users");
     const projection = includePassword ? {} : { password: 0 };
     const results = await collection
       .find({ _id: id })
@@ -48,10 +46,10 @@ async function getUserById(id, includePassword) {
       .toArray();
     return results[0];
   } else if (!ObjectId.isValid(id)) {
-    console.log("INVALID ID: ", id);
+    console.log("INVALID USER ID: ", id);
     return null;
   } else {
-    console.log("VALID ID: ", id);
+    console.log("VALID USER ID: ", id);
     const projection = includePassword ? {} : { password: 0 };
     const results = await collection
       .find({ _id: new ObjectId(id) })
@@ -75,22 +73,22 @@ exports.validateUser = async function (id, password) {
   return authenticated;
 };
 
-async function getStudentsByCourseId(id) {
-  console.log("==IN getStudentsByCourseId ID: ", id);
-  const db = getDBReference();
-  const collection = db.collection('users');
-  if(id.length < 3 ) {
-    const results = await collection
-      .find({ courseid: id })
-      .toArray();
-    return results;
-  } else if (!ObjectId.isValid(id)) {
-    return [];
-  } else {
-    const results = await collection
-      .find({ courseid: new ObjectId(id) })
-      .toArray();
-    return results;
-  }
-}
-exports.getStudentsByCourseId = getStudentsByCourseId;
+// async function getStudentsByCourseId(id) {
+//   console.log("==IN getStudentsByCourseId ID: ", id);
+//   const db = getDBReference();
+//   const collection = db.collection('users');
+//   if(id.length < 3 ) {
+//     const results = await collection
+//       .find({ courseid: id })
+//       .toArray();
+//     return results;
+//   } else if (!ObjectId.isValid(id)) {
+//     return [];
+//   } else {
+//     const results = await collection
+//       .find({ courseid: new ObjectId(id) })
+//       .toArray();
+//     return results;
+//   }
+// }
+// exports.getStudentsByCourseId = getStudentsByCourseId;
