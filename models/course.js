@@ -6,7 +6,7 @@ const { ObjectId } = require('mongodb');
 
 const { getDBReference } = require('../lib/mongo');
 const { extractValidFields } = require('../lib/validation');
-
+const { removeAssignmentsByCourseId } = require('../models/assignment');
 /*
  * Schema describing required/optional fields of a course object.
  */
@@ -125,10 +125,13 @@ async function updateEnrollmentByCourseId(courseId, addIds, removeIds) {
 exports.updateEnrollmentByCourseId = updateEnrollmentByCourseId;
 
 
+//Also need to remove all assignments, enrolled students(auto), submissions
 async function removeCourseById(id) {
   if (!ObjectId.isValid(id)) {
     return null;
   } else {
+    //delete assignments first
+    const remove = await removeAssignmentsByCourseId(id);
     const db = getDBReference();
     const collection = db.collection('courses');
     const result = await collection.deleteOne(

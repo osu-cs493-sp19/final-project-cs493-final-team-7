@@ -271,7 +271,13 @@ router.get('/:id/roster', requireAuthentication, async (req, res, next) => {
    if(course) {
      const assignments = await getAssignmentsByCourseId(id);
       res.status(200).send(
-        { assignments: assignments }
+        {
+          courseId: course._id,
+          subject: course.subject,
+          number: course.number,
+          title: course.title,
+          assignments: assignments
+        }
       );
    } else {
      next();

@@ -82,6 +82,24 @@ exports.removeAssignmentsById = removeAssignmentsById;
 
 
 
+//Also need to remove all submissions under these assignments
+async function removeAssignmentsByCourseId(id) {
+  if (!ObjectId.isValid(id)) {
+    return null;
+  } else {
+    //Delete submission first
+    const db = getDBReference();
+    const collection = db.collection('assignments');
+    const result = await collection.deleteMany(
+      { courseId: id },
+    );
+    console.log("==removeAssignmentsByCourseId: ", result.deletedCount);
+    return id;
+  }
+}
+exports.removeAssignmentsByCourseId = removeAssignmentsByCourseId;
+
+
 
 function getAssignmentIds(assignments) {
   var assignmentIds = [];
@@ -96,7 +114,6 @@ async function getAssignmentsByCourseId(id) {
   if (!ObjectId.isValid(id)) {
     return null;
   } else {
-    //Delete submission first
     const db = getDBReference();
     const collection = db.collection('assignments');
     const results = await collection
