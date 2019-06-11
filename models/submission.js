@@ -5,16 +5,30 @@ const { extractValidFields } = require('../lib/validation');
 const { getStudentsByCourseId } = require('./user');
 
 const SubmissionSchema = {
-  assignmentId: { required: true },
-  studentId: { required: true },
-  timeStamp: { required: true },
-  file: { required: true },
+  timeStamp: { required: true }
 };
 exports.SubmissionSchema = SubmissionSchema;
 
-//getSubmissionsByAssignmentId
 
-//createSubmission
+
+
+async function createSubmission(file) {
+  const db = getDBReference();
+  const collection = db.collection('files');
+  const result = await collection.insertOne(file);
+  return result.insertedId;
+}
+exports.createSubmission = createSubmission;
+
+
+
+
+async function getSubmissionsByAssignmentId(id) {
+
+}
+exports.getSubmissionsByAssignmentId = getSubmissionsByAssignmentId;
+
+
 
 async function removeSubmissionsByAssignmentId(id) {
   // assignment = extractValidFields(assignment, AssignmentSchema);
