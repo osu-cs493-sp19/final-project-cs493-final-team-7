@@ -6,16 +6,16 @@ const router = require('express').Router();
 
 const { validateAgainstSchema } = require('../lib/validation');
 const { generateAuthToken, requireAuthentication } = require('../lib/auth');
-const { UserSchema, insertNewUser, getUserById, validateUser } = require('../models/user');
-
+const { getUserById } = require('../models/user');
+const { getAssignmentsByCourseId } = require('../models/assignment');
 const {
   CourseSchema,
-  getCoursesPage,
-  insertNewCourse,
+  getAllCourses,
+  createCourse,
   getCourseById,
-  updateCourse,
-  courseEnrollment,
-  deleteCourseById
+  updateCourseById,
+  updateEnrollmentByCourseId,
+  removeCourseById
 } = require('../models/course');
 
 /*
@@ -23,7 +23,7 @@ const {
  */
 router.get('/', async (req, res) => {
   try {
-    const coursePage = await getCoursesPage(parseInt(req.query.page) || 1);
+    const coursePage = await getAllCourses(parseInt(req.query.page) || 1);
     coursePage.links = {};
     if (coursePage.page < coursePage.totalPages) {
       coursePage.links.nextPage = `/courses?page=${coursePage.page + 1}`;
@@ -50,7 +50,7 @@ router.post('/', requireAuthentication, async (req, res) => {
   if(currentUser.role == "0"){
     if (validateAgainstSchema(req.body, CourseSchema)) {
       try {
-        const id = await insertNewCourse(req.body);
+        const id = await createCourse(req.body);
         res.status(201).send({
           id: id,
           links: {
@@ -109,7 +109,7 @@ router.put('/:id', requireAuthentication, async (req, res, next) => {
     if(currentUser.role == "0" || currentUser._id == existingCourse.instructorId){
       if (validateAgainstSchema(req.body, CourseSchema)) {
         try {
-          const updatedId = await updateCourse(id, req.body);
+          const updatedId = await updateCourseById(id, req.body);
           res.status(201).send({
             id: updatedId,
             links: {
@@ -147,7 +147,7 @@ router.delete('/:id', requireAuthentication, async (req, res, next) => {
   if(existingCourse) {
     if(currentUser.role == "0") {
       try {
-        const deleteSuccessful = await deleteCourseById(req.params.id);
+        const deleteSuccessful = await removeCourseById(req.params.id);
         if (deleteSuccessful) {
           res.status(204).end();
         } else {
@@ -214,8 +214,10 @@ router.delete('/:id', requireAuthentication, async (req, res, next) => {
        if(req.body.add || req.body.remove){
          const enrollIds = req.body.add;
          const unenrollIds = req.body.remove;
-         const results = await courseEnrollment(id, enrollIds, unenrollIds);
-         res.status(200).send(results);
+         const results = await updateEnrollmentByCourseId(id, enrollIds, unenrollIds);
+         res.status(200).send(
+           {"Course Enrollments": results}
+         );
        } else {
          res.status(400).send({
            error: "Request body is not a valid course object."
@@ -234,18 +236,46 @@ router.delete('/:id', requireAuthentication, async (req, res, next) => {
 
  /*
   * Route download students list as csv file of a course.
+    Returns a CSV file containing information about all of the students
+    currently enrolled in the Course, including names, IDs, and email addresses.
+    Only an authenticated User with 'admin' role or an authenticated
+    'instructor' User whose ID matches the `instructorId` of the Course
+    can fetch the course roster.
   */
- router.get('/:id/roster', async (req, res, next) => {
-
-
-  });
+router.get('/:id/roster', requireAuthentication, async (req, res, next) => {
+  const id = req.params.id;
+  const currentUser = await getUserById(req.user);
+  const course = await getCourseById(id);
+  if(course) {
+    //Create getRosterByCourseId function to get student list in csv file in model
+   if(currentUser.role == "0" || currentUser._id == course.instructorId){
+      res.status(200).send(
+        {"students list": "students list csv file can be downloaded"}
+      );
+   } else {
+     res.status(403).send({
+       error: "Unauthorized to access the specified resource"
+     });
+   }
+  } else {
+   next();
+  }
+});
 
 /*
  * Route to get assignments list of a course.
  */
  router.get('/:id/assignments', async (req, res, next) => {
-
-
+   const id = req.params.id;
+   const course = await getCourseById(id);
+   if(course) {
+     const assignments = await getAssignmentsByCourseId(id);
+      res.status(200).send(
+        { assignments: assignments }
+      );
+   } else {
+     next();
+   }
  });
 
 

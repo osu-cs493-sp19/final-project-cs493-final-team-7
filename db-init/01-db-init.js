@@ -3,36 +3,42 @@ db.users.insertMany([
     "_id": "0",
     "name": "Admin",
     "password": "$2a$08$Y00/JO/uN9n0dHKuudRX2eKksWMIHXDLzHWKuz/K67alAYsZRRike",
+    "email": "chiens@oregonstate.edu",
     "role": "0"
   },
   {
     "_id": "1",
     "name": "Instructor RH",
     "password": "$2a$08$FBStm3plzBCnh/MPIUsJ0.f7kJkp6aH47haXHb3HY.Gfygan7e8He",
+    "email": "fred@fredmeyer.com",
     "role": "1"
   },
   {
     "_id": "2",
     "name": "Instructor JF",
     "password": "$2a$08$Y2IHnr/PU9tzG5HKrHGJH.zH3HAvlR5i5puD5GZ1sHA/mVrHKci72",
+    "email": "allan@allanscoffee.com",
     "role": "1"
   },
   {
     "_id": "3",
     "name": "Student 1",
     "password": "$2a$08$bAKRXPs6fUPhqjZy55TIeO1e.aXud4LD81awrYncaCKJoMsg/s0c.",
+    "email": "paul@darksidecinema.com",
     "role": "2"
   },
   {
     "_id": "4",
     "name": "Student 2",
     "password": "$2a$08$U7IXbbolDIk0SRlmH/dnT.FBCvf.EMvorShGlM65XeQFr./P0rhqe",
+    "email": "william@interzoneorganic1",
     "role": "2"
   },
   {
     "_id": "5",
     "name": "Student 3",
     "password": "$2a$08$q8njvTTel9JDR.BQbb1cD.XL73CR.QCOXLnofdpd9orbv0dzWGir.",
+    "email": "kim@localboyzhawaiiancafe.com",
     "role": "2"
   }
 ])

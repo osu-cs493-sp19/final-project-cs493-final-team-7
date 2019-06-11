@@ -2,7 +2,7 @@ const router = require('express').Router();
 
 const { validateAgainstSchema } = require('../lib/validation');
 const { generateAuthToken, requireAuthentication } = require('../lib/auth');
-const { UserSchema, insertNewUser, getUserById, validateUser } = require('../models/user');
+const { UserSchema, createUser, getUserById, validateUser } = require('../models/user');
 const { getCourseIdByUserId } = require('../models/course');
 
 
@@ -12,7 +12,7 @@ router.post('/', requireAuthentication, async (req, res) => {
     const currentUser = await getUserById(req.user);
     if (currentUser.role == "0" || req.body.role ==  "2" ) {
       try {
-        const id = await insertNewUser(req.body);
+        const id = await createUser(req.body);
         var role;
         if(req.body.role == "0") {
           role = "Admin";

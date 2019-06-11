@@ -19,7 +19,7 @@ const CourseSchema = {
 };
 exports.CourseSchema = CourseSchema;
 
-async function getCoursesPage(page) {
+async function getAllCourses(page) {
   const db = getDBReference();
   const collection = db.collection('courses');
   const count = await collection.countDocuments();
@@ -48,21 +48,20 @@ async function getCoursesPage(page) {
     count: count
   };
 }
-exports.getCoursesPage = getCoursesPage;
+exports.getAllCourses = getAllCourses;
 
 
-async function insertNewCourse(course) {
+async function createCourse(course) {
   course = extractValidFields(course, CourseSchema);
   const db = getDBReference();
   const collection = db.collection('courses');
   const result = await collection.insertOne(course);
   return result.insertedId;
 }
-exports.insertNewCourse = insertNewCourse;
+exports.createCourse = createCourse;
 
 
 async function getCourseById(id) {
-
   if (!ObjectId.isValid(id)) {
     return null;
   } else {
@@ -77,8 +76,7 @@ async function getCourseById(id) {
 exports.getCourseById = getCourseById;
 
 
-async function updateCourse(id, course) {
-
+async function updateCourseById(id, course) {
   if (!ObjectId.isValid(id)) {
     return null;
   } else {
@@ -98,11 +96,11 @@ async function updateCourse(id, course) {
     return id;
   }
 }
-exports.updateCourse = updateCourse;
+exports.updateCourseById = updateCourseById;
 
 
-async function courseEnrollment(courseId, addIds, removeIds) {
-  console.log("==courseEnrollment:");
+async function updateEnrollmentByCourseId(courseId, addIds, removeIds) {
+  console.log("==updateEnrollmentByCourseId:");
   console.log("add: ", addIds);
   console.log("remove: ", removeIds);
 
@@ -124,10 +122,10 @@ async function courseEnrollment(courseId, addIds, removeIds) {
     return courseId;
   }
 }
-exports.courseEnrollment = courseEnrollment;
+exports.updateEnrollmentByCourseId = updateEnrollmentByCourseId;
 
 
-async function deleteCourseById(id) {
+async function removeCourseById(id) {
   if (!ObjectId.isValid(id)) {
     return null;
   } else {
@@ -139,7 +137,7 @@ async function deleteCourseById(id) {
     return id;
   }
 }
-exports.deleteCourseById = deleteCourseById;
+exports.removeCourseById = removeCourseById;
 
 
 

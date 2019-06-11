@@ -10,6 +10,7 @@ const { getDBReference } = require('../lib/mongo');
 const UserSchema = {
   name: { required: true },
   password: { required: true },
+  email: { required: true },
   role: {required: true}
 };
 exports.UserSchema = UserSchema;
@@ -18,7 +19,7 @@ exports.UserSchema = UserSchema;
 /*
  * Insert a new User into the DB.
  */
-async function insertNewUser(user) {
+async function createUser(user) {
   const userToInsert = extractValidFields(user, UserSchema);
   const db = getDBReference();
   const collection = db.collection('users');
@@ -29,7 +30,7 @@ async function insertNewUser(user) {
   const result = await collection.insertOne(userToInsert);
   return result.insertedId;
 };
-exports.insertNewUser = insertNewUser;
+exports.createUser = createUser;
 
 
 /*
@@ -60,6 +61,7 @@ async function getUserById(id, includePassword) {
 };
 exports.getUserById = getUserById;
 
+
 exports.validateUser = async function (id, password) {
   const user = await getUserById(id, true);
 
@@ -72,23 +74,3 @@ exports.validateUser = async function (id, password) {
   }
   return authenticated;
 };
-
-// async function getStudentsByCourseId(id) {
-//   console.log("==IN getStudentsByCourseId ID: ", id);
-//   const db = getDBReference();
-//   const collection = db.collection('users');
-//   if(id.length < 3 ) {
-//     const results = await collection
-//       .find({ courseid: id })
-//       .toArray();
-//     return results;
-//   } else if (!ObjectId.isValid(id)) {
-//     return [];
-//   } else {
-//     const results = await collection
-//       .find({ courseid: new ObjectId(id) })
-//       .toArray();
-//     return results;
-//   }
-// }
-// exports.getStudentsByCourseId = getStudentsByCourseId;
