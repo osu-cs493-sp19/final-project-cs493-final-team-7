@@ -27,6 +27,7 @@ exports.createAssignment = createAssignment;
 
 async function getAssignmentById(id) {
   if (!ObjectId.isValid(id)) {
+    console.log("== Invalid ID");
     return null;
   } else {
     const db = getDBReference();

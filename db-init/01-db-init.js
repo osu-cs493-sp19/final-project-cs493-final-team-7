@@ -41,7 +41,7 @@ db.users.insertMany([
     "email": "kim@localboyzhawaiiancafe.com",
     "role": "2"
   }
-])
+]);
 
 db.courses.insertMany([
   {
@@ -92,6 +92,45 @@ db.courses.insertMany([
     "instructorId": "2",
     "studentsId": ["3", "5"]
   }
+]);
+
+db.assignments.insertMany([
+{
+"courseId": "0",
+"title": "assignment1",
+"points": "90",
+"due": "2019-06-15T17:00:00-07:00"
+},
+{
+"courseId": "0",
+"title": "assignment2",
+"points": "100",
+"due": "2019-06-30T17:00:00-07:00"
+},
+{
+"courseId": "1",
+"title": "assignment1",
+"points": "100",
+"due": "2019-06-19T17:00:00-07:00"
+},
+{
+"courseId": "2",
+"title": "assignment1",
+"points": "100",
+"due": "2019-06-19T17:00:00-07:00"
+},
+{
+"courseId": "3",
+"title": "assignment1",
+"points": "80",
+"due": "2019-06-14T17:00:00-07:00"
+},
+{
+"courseId": "3",
+"title": "assignment2",
+"points": "50",
+"due": "2019-07-14T17:00:00-07:00"
+}
 ]);
 
 db.businesses.insertMany([

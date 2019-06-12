@@ -78,6 +78,7 @@ router.post('/login', async (req, res) => {
  */
 router.get('/:id/', requireAuthentication, async (req, res, next) => {
   const currentUser = await getUserById(req.user);
+  console.log("== req.user: " + req.user);
   if (req.params.id == req.user) {
     if(currentUser) {
       try {
