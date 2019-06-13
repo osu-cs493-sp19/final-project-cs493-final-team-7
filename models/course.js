@@ -7,6 +7,8 @@ const { ObjectId } = require('mongodb');
 const { getDBReference } = require('../lib/mongo');
 const { extractValidFields } = require('../lib/validation');
 const { removeAssignmentsByCourseId } = require('../models/assignment');
+const { getUserById } = require('./user');
+const ObjectID = require('mongodb').ObjectID;
 /*
  * Schema describing required/optional fields of a course object.
  */
@@ -183,3 +185,32 @@ async function getCourseIdByUserId(role, userid) {
   }
 }
 exports.getCourseIdByUserId = getCourseIdByUserId;
+
+async function generateCSV(id) {
+  const db = getDBReference();
+  const collection = db.collection("courses");
+
+  const course = await collection
+    .find({
+      _id: new ObjectID(id)
+    })
+    .toArray();
+
+    const students = course[0].studentsId;
+    const studentsLen = students.length;
+    const data = [];
+
+    for (var i = 0; i < studentsLen; i++) {
+      const user = await getUserById(students[i]);
+      data.push([ students[i].toString(), user.name.toString(), user.email.toString(), '\n' ]);
+    }
+
+    var csv = "";
+     data.forEach(function(row) {
+          csv += row.join(',');
+
+     });
+
+     return csv;
+}
+exports.generateCSV = generateCSV;
