@@ -192,24 +192,17 @@ async function generateCSV(id) {
 
   const course = await collection
     .find({
-      _id: new ObjectID(id)
+      _id: id
     })
     .toArray();
 
     const students = course[0].studentsId;
     const studentsLen = students.length;
-    const data = [];
-
+    var csv = "";
     for (var i = 0; i < studentsLen; i++) {
       const user = await getUserById(students[i]);
-      data.push([ students[i].toString(), user.name.toString(), user.email.toString(), '\n' ]);
+      csv += students[i].toString() + ", " + user.name.toString() + ", " + user.email.toString() + "\n";
     }
-
-    var csv = "";
-     data.forEach(function(row) {
-          csv += row.join(',');
-
-     });
 
      return csv;
 }

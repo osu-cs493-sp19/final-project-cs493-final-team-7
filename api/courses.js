@@ -256,7 +256,7 @@ router.get('/:id/roster', requireAuthentication, async (req, res, next) => {
       if (course) {
         const csv = await generateCSV(req.params.id);
         res.set('Content-Type', 'text/csv');
-        res.status(200).send({ csv });
+        res.status(200).send( csv );
       } else {
         next();
       }
