@@ -15,7 +15,8 @@ const {
   SubmissionSchema,
   createSubmission,
   getSubmissionsByAssignmentId,
-  removeSubmissionsByAssignmentId
+  removeSubmissionsByAssignmentId,
+  getDownloadStreamByFilename
 } = require('../models/submission');
 const {
   AssignmentSchema,
@@ -269,6 +270,21 @@ function removeUploadedFile(file) {
     });
   });
 }
+
+router.get('/download/:filename', async (req, res, next) => {
+  getDownloadStreamByFilename(req.params.filename)
+    .on('error', (err) => {
+      if (err.code === 'ENOENT') {
+        next();
+      } else {
+        next(err);
+      }
+    })
+    .on('file', (file) => {
+      res.status(200);
+    })
+    .pipe(res);
+});
 
 /*
  * Route to create all submissions of a specific assignment.

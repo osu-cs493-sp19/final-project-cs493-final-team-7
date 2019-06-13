@@ -84,3 +84,9 @@ async function removeSubmissionsByAssignmentId(id) {
 
 }
 exports.removeSubmissionsByAssignmentId = removeSubmissionsByAssignmentId;
+
+exports.getDownloadStreamByFilename = function (filename) {
+  const db = getDBReference();
+  const bucket = new GridFSBucket(db, { bucketName: 'submission' });
+  return bucket.openDownloadStreamByName(filename);
+};
