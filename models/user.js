@@ -64,21 +64,19 @@ exports.getUserById = getUserById;
 /*
  * Fetch a user from the DB based on user Email.
  */
-async function getIdByEmail(email, includePassword) {
+async function getIdByEmail(email) {
   const db = getDBReference();
   const collection = db.collection('users');
-  const projection = includePassword ? {} : { password: 0 };
-  const results = await collection.find({"email": email}).project(projection).toArray();
-  console.log("== result: "+ results[0]);
-  return results;
+  const results = await collection.find({"email": email}).toArray();
+  return results[0]._id;
 }
 exports.getIdByEmail = getIdByEmail;
 
 
 exports.validateUser = async function (email, password) {
-  //const id = await getIdByEmail(email, true);
-  //console.log("== id: "+ id);
-  const user = await getUserById(email, true);
+  const id = await getIdByEmail(email);
+  console.log("== id: "+ id);
+  const user = await getUserById(id, true);
 
   const authenticated = user && await bcrypt.compare(password, user.password);
   if(authenticated)

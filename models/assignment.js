@@ -18,6 +18,7 @@ async function createAssignment(assignment) {
   assignment = extractValidFields(assignment, AssignmentSchema);
   const db = getDBReference();
   const collection = db.collection('assignments');
+  assignment._id = new ObjectId().toString();
   const result = await collection.insertOne(assignment);
   return result.insertedId;
 }
@@ -30,10 +31,11 @@ async function getAssignmentById(id) {
     console.log("== Invalid ID");
     return null;
   } else {
+    console.log("== id: " + id);
     const db = getDBReference();
     const collection = db.collection('assignments');
     const results = await collection
-      .find({ _id: new ObjectId(id) })
+      .find({ _id: id })
       .toArray();
 
     return results[0];
@@ -41,7 +43,16 @@ async function getAssignmentById(id) {
 }
 exports.getAssignmentById = getAssignmentById;
 
+async function getAllAssignment() {
+  const db = getDBReference();
+  const collection = db.collection('assignments');
+  const results = await collection.find({}).toArray();
 
+  return {
+    assignment: results
+  };
+}
+exports.getAllAssignment = getAllAssignment;
 
 async function updateAssignmentById(id, assignment) {
   if (!ObjectId.isValid(id)) {
@@ -50,7 +61,7 @@ async function updateAssignmentById(id, assignment) {
     const db = getDBReference();
     const collection = db.collection('assignments');
     const result = await collection.updateOne(
-      { _id: new ObjectId(id)},
+      { _id: id},
       { $set: {
         "courseId": assignment.courseId,
         "title": assignment.title,
@@ -74,7 +85,7 @@ async function removeAssignmentsById(id) {
     const db = getDBReference();
     const collection = db.collection('assignments');
     const result = await collection.deleteOne(
-      { _id: new ObjectId(id)},
+      { _id: id},
     );
     return id;
   }

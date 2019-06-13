@@ -24,6 +24,7 @@ const {
 router.get('/', async (req, res) => {
   try {
     const coursePage = await getAllCourses(parseInt(req.query.page) || 1);
+    console.log(req.query.page);
     coursePage.links = {};
     if (coursePage.page < coursePage.totalPages) {
       coursePage.links.nextPage = `/courses?page=${coursePage.page + 1}`;
@@ -41,13 +42,12 @@ router.get('/', async (req, res) => {
     });
   }
 });
-
 /*
  * Route to create a new course.
  */
 router.post('/', requireAuthentication, async (req, res) => {
   const currentUser = await getUserById(req.user);
-  if(currentUser.role == "0"){
+  if(currentUser.role == "admin"){
     if (validateAgainstSchema(req.body, CourseSchema)) {
       try {
         const id = await createCourse(req.body);
@@ -106,7 +106,7 @@ router.put('/:id', requireAuthentication, async (req, res, next) => {
   const id = req.params.id;
   const existingCourse = await getCourseById(id);
   if(existingCourse) {
-    if(currentUser.role == "0" || currentUser._id == existingCourse.instructorId){
+    if(currentUser.role == "admin" || currentUser._id == existingCourse.instructorId){
       if (validateAgainstSchema(req.body, CourseSchema)) {
         try {
           const updatedId = await updateCourseById(id, req.body);
@@ -145,11 +145,11 @@ router.delete('/:id', requireAuthentication, async (req, res, next) => {
   const existingCourse = await getCourseById(id);
   const currentUser = await getUserById(req.user);
   if(existingCourse) {
-    if(currentUser.role == "0") {
+    if(currentUser.role == "admin") {
       try {
         const deleteSuccessful = await removeCourseById(req.params.id);
         if (deleteSuccessful) {
-          res.status(204).end();
+          res.status(204).send({"message": "Succesffully delete course" + id});
         } else {
           next();
         }
@@ -183,7 +183,7 @@ router.delete('/:id', requireAuthentication, async (req, res, next) => {
    const currentUser = await getUserById(req.user);
    const course = await getCourseById(id);
    if(course) {
-     if(currentUser.role == "0" || currentUser._id == course.instructorId){
+     if(currentUser.role == "admin" || currentUser._id == course.instructorId){
         res.status(200).send(
           {"enrolled students ID": course.studentsId}
         );
@@ -210,7 +210,7 @@ router.delete('/:id', requireAuthentication, async (req, res, next) => {
    const currentUser = await getUserById(req.user);
    const course = await getCourseById(id);
    if(course) {
-     if(currentUser.role == "0" || currentUser._id == course.instructorId){
+     if(currentUser.role == "admin" || currentUser._id == course.instructorId){
        if(req.body.add || req.body.remove){
          const enrollIds = req.body.add;
          const unenrollIds = req.body.remove;
@@ -248,7 +248,7 @@ router.get('/:id/roster', requireAuthentication, async (req, res, next) => {
   const course = await getCourseById(id);
   if(course) {
     //Create getRosterByCourseId function to get student list in csv file in model
-   if(currentUser.role == "0" || currentUser._id == course.instructorId){
+   if(currentUser.role == "admin" || currentUser._id == course.instructorId){
       res.status(200).send(
         {"students list": "students list csv file can be downloaded"}
       );

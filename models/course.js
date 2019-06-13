@@ -68,7 +68,7 @@ async function getCourseById(id) {
     const db = getDBReference();
     const collection = db.collection('courses');
     const results = await collection
-      .find({ _id: new ObjectId(id) })
+      .find({ _id: id })
       .toArray();
       return results[0];
   }
@@ -161,7 +161,7 @@ async function getCourseIdByUserId(role, userid) {
     const db = getDBReference();
     const collection = db.collection('courses');
 
-    if(role == 1) {
+    if(role == "instructor") {
       const results = await collection
         .find(
           { "instructorId": userid },
