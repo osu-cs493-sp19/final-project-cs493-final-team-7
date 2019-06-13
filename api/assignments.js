@@ -119,7 +119,7 @@ router.get('/:id', async (req, res, next) => {
 //XXX: for testing
 /*
  * Route to get a specific assignment.
- */
+
 router.get('/', async (req, res, next) => {
   try {
     const assignment = await getAllAssignment();
@@ -135,7 +135,7 @@ router.get('/', async (req, res, next) => {
     });
   }
 });
-
+*/
 
 /*
  * Route to modify a specific assignment.
