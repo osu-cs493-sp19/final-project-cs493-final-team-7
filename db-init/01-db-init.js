@@ -132,9 +132,3 @@ db.assignments.insertMany([
     "due": "2019-07-14T17:00:00-07:00"
 }
 ]);
-
-db.Submission.insertMany([
-{
-
-}
-]);

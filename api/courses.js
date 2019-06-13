@@ -15,8 +15,10 @@ const {
   getCourseById,
   updateCourseById,
   updateEnrollmentByCourseId,
-  removeCourseById
+  removeCourseById,
+  generateCSV
 } = require('../models/course');
+
 
 /*
  * Route to return a paginated list of courses.
@@ -246,12 +248,18 @@ router.get('/:id/roster', requireAuthentication, async (req, res, next) => {
   const id = req.params.id;
   const currentUser = await getUserById(req.user);
   const course = await getCourseById(id);
+
   if(course) {
     //Create getRosterByCourseId function to get student list in csv file in model
    if(currentUser.role == "admin" || currentUser._id == course.instructorId){
-      res.status(200).send(
-        {"students list": "students list csv file can be downloaded"}
-      );
+
+      if (course) {
+        const csv = await generateCSV(req.params.id);
+        res.set('Content-Type', 'text/csv');
+        res.status(200).send({ csv });
+      } else {
+        next();
+      }
    } else {
      res.status(403).send({
        error: "Unauthorized to access the specified resource"
@@ -283,6 +291,7 @@ router.get('/:id/roster', requireAuthentication, async (req, res, next) => {
      next();
    }
  });
+
 
 
 module.exports = router;
